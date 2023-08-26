@@ -1,3 +1,5 @@
+import time
+import config
 import torch
 import torch.nn as nn
 import torchvision.transforms.functional as TF
@@ -90,7 +92,7 @@ class UNET(nn.Module):
         return self.final_conv(x)
 
 def test():
-    x = torch.randn((3, 3, 161, 161))
+    x = torch.randn((1, 3, 720, 1280)).to(config.DEVICE)
     model = UNET(in_channels=3, out_channels=3)
     preds = model(x)
     assert preds.shape == x.shape
