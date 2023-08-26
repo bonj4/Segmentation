@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from piqa import SSIM
+
 class DiceLoss(torch.nn.Module):
     def __init__(self, weight=None, size_average=True):
         super(DiceLoss, self).__init__()
@@ -56,3 +58,7 @@ class mIoULoss(nn.Module):
         loss = inter / union
         ## Return average loss over classes and batch
         return loss.mean()
+
+class SSIMLoss(SSIM):
+    def forward(self, x, y):
+        return 1. - super().forward(x, y)
