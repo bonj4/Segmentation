@@ -4,17 +4,19 @@ import torch.nn.functional as F
 from piqa import SSIM
 
 class DiceLoss(torch.nn.Module):
-    def __init__(self, weight=None, size_average=True):
+    def __init__(self, weight=None, size_average=True,bce=True):
         super(DiceLoss, self).__init__()
         self.bceloss_fn = nn.BCEWithLogitsLoss()
-    def forward(self,preds, targets, smooth=1e-6, bce=True):
+        self.bce=bce
+    def forward(self,preds, targets, smooth=1e-6):
+        assert preds.shape[0] == targets.shape[0], "predict & target batch size don't match"
         dice_loss=0
-        if bce:
+        if self.bce:
             BCE =self.bceloss_fn(preds, targets)
             dice_loss+=BCE
         #comment out if your model contains a sigmoid or equivalent activation layer
         preds = torch.sigmoid(preds)
-        preds = (preds > 0.5).float()
+        # preds = (preds > 0.5).float()
         #flatten label and prediction tensors
         preds = preds.reshape(-1)
         targets = targets.reshape(-1)
