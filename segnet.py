@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import config
+import time
 class conv2DBatchNormRelu(nn.Module):
     def __init__(
             self,
@@ -68,16 +69,24 @@ class segnetDown3(nn.Module):
 
 
 class segnetUp2(nn.Module):
-    def __init__(self, in_size, out_size):
+    def __init__(self, in_size, out_size, Pred=False):
         super(segnetUp2, self).__init__()
+        self.pred=Pred
         self.unpool = nn.MaxUnpool2d(2, 2)
         self.conv1 = conv2DBatchNormRelu(in_size, in_size, 3, 1, 1)
         self.conv2 = conv2DBatchNormRelu(in_size, out_size, 3, 1, 1)
+        self.pred_conv=nn.Conv2d(int(out_size),
+                             int(out_size),
+                             kernel_size=3,
+                             padding=1,
+                             stride=1,)
 
     def forward(self, inputs, indices, output_shape):
         outputs = self.unpool(input=inputs, indices=indices, output_size=output_shape)
         outputs = self.conv1(outputs)
         outputs = self.conv2(outputs)
+        if self.pred:
+            outputs=self.pred_conv(outputs)
         return outputs
 
 
@@ -113,7 +122,7 @@ class SegNet(nn.Module):
         self.up4 = segnetUp3(512, 256)
         self.up3 = segnetUp3(256, 128)
         self.up2 = segnetUp2(128, 64)
-        self.up1 = segnetUp2(64, out_channels)
+        self.up1 = segnetUp2(64, out_channels,Pred=True)
         if pretrained: self.pretrain()
 
     def forward(self, inputs):
@@ -177,11 +186,12 @@ class SegNet(nn.Module):
 
 
 def test():
-    x = torch.randn((1, 3, 720, 1280)).to(config.DEVICE)
+    x = torch.randn((1, 3, 480, 640)).to(config.DEVICE)
     model = SegNet(in_channels=3, out_channels=3).to(config.DEVICE)
+    s=time.perf_counter()
     preds = model(x)
     assert preds.shape == x.shape
-    print("Success!")
+    print(f"Success! {time.perf_counter()-s}s.")
 
 if __name__ == "__main__":
     test()
