@@ -92,11 +92,12 @@ class UNET(nn.Module):
         return self.final_conv(x)
 
 def test():
-    x = torch.randn((1, 3, 720, 1280)).to(config.DEVICE)
-    model = UNET(in_channels=3, out_channels=3)
+    x = torch.randn((1, 3, 480, 640)).to(config.DEVICE)
+    model = UNET(in_channels=3, out_channels=3).to(config.DEVICE)
+    s=time.perf_counter()
     preds = model(x)
     assert preds.shape == x.shape
-    print("Success!")
+    print(f"Success! {time.perf_counter()-s }s.")
 
 if __name__ == "__main__":
     test()
