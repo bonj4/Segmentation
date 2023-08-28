@@ -5,7 +5,7 @@ from  config import *
 
 def main():
     model = UNET(in_channels=3, out_channels=1).to(DEVICE)
-    
+
     if LOAD_MODEL:
         load_checkpoint(torch.load("checkpoint40.pth.tar"), model)
 
@@ -34,6 +34,7 @@ def main():
         preds = torch.sigmoid(model(x))
         preds = (preds > 0.5).float()
         preds=preds.squeeze(0).squeeze(0).cpu().numpy()
+        preds*=255 # convert to 0-255 scale for cv2.imshow function to work properly
         cv2.imshow("winname",preds)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
