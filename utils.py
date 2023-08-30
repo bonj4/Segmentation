@@ -28,8 +28,34 @@ def check_accuracy(loader, model, device="cuda"):
     print(f"Dice score: {dice_score/len(loader)}")
     model.train()
 
+def check_class_accuracy_for_multiclasses(n_class,loader, model, device="cuda"):
+    num_correct = 0
+    num_pixels = 0
+    dice_score = 0
+    model.eval()
+    #background,face,plate
+    for cls in range(1,n_class):
+        with torch.no_grad():
+            for x, y in tqdm(loader):
+                x = x.to(device)
+                y = y.to(device).detach().cpu().numpy()
+                preds = F.softmax(model(x)).squeeze(0).detach().cpu().numpy()
+                mask=np.all(preds == [cls], axis=0,).astype(float)
+                # mask = (mask > 0.5).float()
 
-def save_checkpoint(state, filename="checkpoint40.pth.tar"):
+                num_correct += (mask == y).sum()
+                num_pixels += preds.shape[0]*preds.shape[1]*preds.shape[2]
+                dice_score += (2 * (mask * y).sum()) / (
+                        (mask + y).sum() + 1e-8
+                )
+    print(
+        f"Got {num_correct}/{num_pixels} with acc {num_correct/num_pixels*100:.2f}"
+    )
+    print(f"Dice score: {dice_score/(len(loader)*(n_class-1))}")
+    model.train()
+
+
+def save_checkpoint(state, filename="checkpoint.pth.tar"):
     print("=> Saving checkpoint")
     torch.save(state, filename)
 
