@@ -51,7 +51,7 @@ def check_class_accuracy_for_multiclasses(n_class,loader, model, device="cuda"):
     print(
         f"Got {num_correct}/{num_pixels} with acc {num_correct/num_pixels*100:.2f}"
     )
-    print(f"Dice score: {dice_score/(len(loader)*(n_class-1))}")
+    print(f"Dice score: {dice_score/len(loader)}")
     model.train()
 
 
